@@ -54,3 +54,6 @@ Never write a number you did not read on a live page this session.
 - Never invent numbers; leave null rather than guess. A missing number is fine.
 - Prefer one row per commonly sold model (e.g. 1/2 HP 10 gpm 230 V 2-wire). Aim for broad, realistic coverage of models a homeowner would actually compare.
 - Nothing about the site owner's location, employer, or personal life.
+
+## Deploys
+Commits to `main` deploy automatically through the Cloudflare Pages Git integration (project `wellpumpchart`). Manual or direct-upload deploys are not used.
