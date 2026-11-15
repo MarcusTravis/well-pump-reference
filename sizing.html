@@ -1,0 +1,215 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Sizing basics: gpm, head, tanks, shallow vs deep · Well Pump Reference Library</title>
+<meta name="description" content="Original-words well pump sizing basics: how many gpm you need, total dynamic head with a worked example, pressure tank drawdown, shallow vs deep wells, 2-wire vs 3-wire, and constant pressure.">
+<link rel="canonical" href="https://wellpumpchart.pages.dev/sizing">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="Well Pump Reference Library">
+<meta property="og:title" content="Sizing basics: gpm, head, tanks, shallow vs deep · Well Pump Reference Library">
+<meta property="og:description" content="Original-words well pump sizing basics: how many gpm you need, total dynamic head with a worked example, pressure tank drawdown, shallow vs deep wells, 2-wire vs 3-wire, and constant pressure.">
+<meta property="og:url" content="https://wellpumpchart.pages.dev/sizing">
+<meta property="og:image" content="https://wellpumpchart.pages.dev/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Well Pump Reference Library: a well casing with a submersible pump, pressure tank and gauge in teal line art">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Sizing basics: gpm, head, tanks, shallow vs deep · Well Pump Reference Library">
+<meta name="twitter:description" content="Original-words well pump sizing basics: how many gpm you need, total dynamic head with a worked example, pressure tank drawdown, shallow vs deep wells, 2-wire vs 3-wire, and constant pressure.">
+<meta name="twitter:image" content="https://wellpumpchart.pages.dev/og-image.png">
+<link rel="icon" href="favicon.ico" sizes="any">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="theme.css?v=20261115a">
+</head>
+<body>
+<div class="page-bg"></div>
+<a class="skip" href="#main">Skip to content</a>
+<nav class="topnav" aria-label="Primary">
+  <div class="inner">
+    <a class="brand" href="index.html">
+      <svg width="28" height="28" viewBox="0 0 32 32" aria-hidden="true"><rect x="1" y="1" width="30" height="30" rx="6" fill="none" stroke="#3fc1c9" stroke-width="1.5"/><path d="M16 6 C16 6 8.5 14.5 8.5 19.5 a7.5 7.5 0 0 0 15 0 C23.5 14.5 16 6 16 6 Z" fill="none" stroke="#9be7ea" stroke-width="1.6"/><path d="M12.5 20 q3.5 -3 7 0" fill="none" stroke="#3fc1c9" stroke-width="1.5"/></svg>
+      Well Pump Reference Library
+    </a>
+    <button type="button" class="nav-toggle" aria-expanded="false" aria-controls="primary-nav" aria-label="Open menu">☰ Menu</button>
+    <ul class="nav-links" id="primary-nav"><li><a href="index.html">Home</a></li><li><a href="submersible.html">Submersible</a></li><li><a href="jet.html">Jet</a></li><li><a href="constant-pressure.html">Const. pressure</a></li><li><a href="tanks.html">Tanks</a></li><li><a href="controls.html">Controls</a></li><li><a href="sizing.html" aria-current="page">Sizing</a></li><li><a href="compare.html">Compare <span class="cmp-n" hidden>0</span></a></li><li><a href="updates.html">Updates</a></li><li><a href="index.html#about">About</a></li></ul>
+  </div>
+</nav>
+
+<div class="wrap" id="main">
+<header class="hero compact">
+  <div class="hero-art"><svg class="hero-svg" viewBox="0 0 1200 420" preserveAspectRatio="xMaxYMid slice" aria-hidden="true">
+  <defs>
+    <linearGradient id="hsky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#0a2236"/>
+      <stop offset="40%" stop-color="#071622"/>
+      <stop offset="100%" stop-color="#050d16"/>
+    </linearGradient>
+    <linearGradient id="hwater" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#3fc1c9" stop-opacity="0.30"/>
+      <stop offset="100%" stop-color="#3fc1c9" stop-opacity="0.04"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="420" fill="url(#hsky)"/>
+  <!-- ground line and soil strata -->
+  <g fill="none" stroke="#8fb4c8" stroke-width="1.2">
+    <path d="M0,120 L1200,120" stroke-opacity="0.5"/>
+    <path d="M0,170 C200,160 400,182 600,172 S1000,166 1200,174" stroke-opacity="0.16"/>
+    <path d="M0,225 C240,215 420,238 640,226 S1000,220 1200,230" stroke-opacity="0.14"/>
+    <path d="M0,300 C220,292 440,312 660,300 S1000,296 1200,304" stroke-opacity="0.12"/>
+    <path d="M0,370 C260,362 460,380 700,368 S1020,364 1200,372" stroke-opacity="0.10"/>
+  </g>
+  <!-- water table -->
+  <path d="M0,248 C60,242 120,254 180,248 S300,242 360,248 S480,254 540,248 S660,242 720,248 S840,254 900,248 S1020,242 1080,248 S1160,252 1200,248 L1200,420 L0,420 Z" fill="url(#hwater)"/>
+  <path d="M0,248 C60,242 120,254 180,248 S300,242 360,248 S480,254 540,248 S660,242 720,248 S840,254 900,248 S1020,242 1080,248 S1160,252 1200,248" fill="none" stroke="#3fc1c9" stroke-opacity="0.7" stroke-width="1.4"/>
+  <!-- well casing -->
+  <g fill="none" stroke="#9be7ea" stroke-width="2">
+    <path d="M840,112 L840,392"/>
+    <path d="M900,112 L900,392"/>
+    <path d="M830,112 L910,112"/>
+    <path d="M840,392 L900,392" stroke-dasharray="4 5" stroke-opacity="0.5"/>
+  </g>
+  <!-- water inside casing -->
+  <rect x="841" y="252" width="58" height="140" fill="#3fc1c9" fill-opacity="0.12"/>
+  <!-- drop pipe and submersible pump -->
+  <g fill="none" stroke="#3fc1c9" stroke-width="2">
+    <path d="M870,112 L870,318"/>
+    <rect x="855" y="318" width="30" height="46" rx="5"/>
+    <path d="M855,332 L885,332 M855,344 L885,344" stroke-opacity="0.6"/>
+    <rect x="859" y="364" width="22" height="22" rx="4"/>
+  </g>
+  <!-- pitless line to house, pressure tank, gauge, switch -->
+  <g fill="none" stroke="#3fc1c9" stroke-width="2">
+    <path d="M870,150 L720,150 L720,134"/>
+    <rect x="620" y="42" width="120" height="92" rx="46" stroke="#9be7ea"/>
+    <path d="M560,92 L620,92"/>
+    <circle cx="540" cy="92" r="20"/>
+    <path d="M540,92 L551,81" stroke-width="2"/>
+    <rect x="490" y="62" width="30" height="24" rx="3" stroke-opacity="0.7"/>
+    <path d="M520,74 L520,92 L520,92" stroke-opacity="0.5"/>
+  </g>
+  <g fill="#3fc1c9" fill-opacity="0.9">
+    <circle cx="540" cy="92" r="2.6"/>
+    <circle cx="870" cy="150" r="3"/>
+  </g>
+  <!-- flow arrows -->
+  <g fill="none" stroke="#9be7ea" stroke-opacity="0.7" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M870,290 l-4,8 m4,-8 l4,8"/>
+    <path d="M870,220 l-4,8 m4,-8 l4,8"/>
+    <path d="M800,150 l8,-4 m-8,4 l8,4"/>
+  </g>
+  <!-- well cap tick marks and depth scale -->
+  <g stroke="#8fb4c8" stroke-opacity="0.35" stroke-width="1">
+    <path d="M1010,120 L1010,392"/>
+    <path d="M1002,120 L1018,120 M1002,188 L1018,188 M1002,256 L1018,256 M1002,324 L1018,324 M1002,392 L1018,392"/>
+  </g>
+</svg>
+</div>
+  <div class="hero-copy">
+    <span class="eyebrow">Explainer</span>
+    <h1>Sizing basics</h1>
+    <p class="lede">Plain-words guidance for picking flow, head, tank size, and pump type, with small worked examples. Rough guidance, not a design.</p>
+    
+  </div>
+</header>
+<aside class="safety" role="note"><strong>Safety note.</strong> This is a reference, not installation advice. Confirm your well&#x27;s depth, water level, recovery rate, casing size, and your electrical supply (voltage, phase, wire size, breaker) with a licensed well or pump installer and electrician before buying or installing anything. Specs change — check the manufacturer&#x27;s current page.</aside>
+
+<article class="prose">
+  <nav class="toc" aria-label="On this page"><strong>On this page</strong>
+    <ol>
+      <li><a href="#gpm">How many gpm do you need?</a></li>
+      <li><a href="#tdh">Total dynamic head</a></li>
+      <li><a href="#drawdown">Pressure tank drawdown</a></li>
+      <li><a href="#shallow-deep">Shallow vs deep wells</a></li>
+      <li><a href="#wires">2-wire vs 3-wire submersibles</a></li>
+      <li><a href="#cp">Constant pressure vs conventional</a></li>
+    </ol>
+  </nav>
+
+  <h2 id="gpm">1. How many gpm do you need?</h2>
+  <p>Gallons per minute (gpm) is how fast the pump must deliver water when several things run at once. Two rough starting points installers use:</p>
+  <ul>
+    <li><strong>Fixture count:</strong> count the water outlets (sinks, toilets, showers and tubs, dishwasher, washer, hose bibs) and allow roughly <strong>1 gpm per fixture</strong>.</li>
+    <li><strong>Bedroom rules:</strong> many charts land somewhere around 6–12 gpm for a typical 3-bedroom, 2-bath house. Treat any such chart as a ballpark, not a promise.</li>
+  </ul>
+  <div class="example"><p><strong>Example.</strong> A house with 2 toilets, 3 bathroom/kitchen sinks, 2 showers, a dishwasher, a washer and 2 hose bibs has 11 outlets. The one-gpm-per-fixture rule says about 11 gpm; in practice not everything runs at once, so many people would be comfortable with 8–10 gpm here. The pressure tank covers short peaks.</p></div>
+  <p><strong>Irrigation adds on top.</strong> Add the flow of the sprinkler zone (or zones) that will run while the house is also using water. If one zone needs 8 gpm, the example house above is now planning for roughly 16–19 gpm.</p>
+  <p><strong>Check the well, too.</strong> A pump that outruns the well’s recovery rate will pump it down and run dry. Your driller’s well report is the number that matters.</p>
+
+  <h2 id="tdh">2. Total dynamic head (TDH)</h2>
+  <p>Head is pressure expressed as feet of water. A pump’s curve shows how many gpm it delivers at a given total head, so you need your job’s total:</p>
+  <p><span class="formula">TDH = vertical lift + pressure in feet + friction loss</span></p>
+  <ul>
+    <li><strong>Vertical lift:</strong> from the <em>pumping</em> water level (where the water sits while the pump runs, not the resting level) up to the pressure tank or house, including any height above the wellhead.</li>
+    <li><strong>Pressure in feet:</strong> <span class="formula">psi × 2.31</span>. Use the pressure switch’s cut-out (the higher number), since the pump has to reach it.</li>
+    <li><strong>Friction loss:</strong> look it up in a friction-loss table for your pipe material and size at your flow. Longer, thinner pipe loses more.</li>
+  </ul>
+  <div class="example">
+    <p><strong>Worked example (made-up numbers).</strong> Pumping water level 120 ft, tank 5 ft above the wellhead: vertical lift = 125 ft.</p>
+    <p>Switch set 40/60 psi: 60 × 2.31 = 138.6 ft, call it 139 ft.</p>
+    <p>Suppose the friction table gives 4 ft per 100 ft for your pipe and flow, and you have 200 ft of pipe: 8 ft.</p>
+    <p>TDH ≈ 125 + 139 + 8 = <strong>272 ft</strong>. You would look for a pump whose curve delivers your target gpm at about 272 ft, with some margin.</p>
+  </div>
+
+  <h2 id="drawdown">3. Pressure tank drawdown</h2>
+  <p><strong>Drawdown</strong> is the water you actually get out of the tank between the pump turning on (cut-in) and off (cut-out). It is only a fraction of the tank’s total volume, and it shrinks as the pressure range rises. That is why two “44-gallon” tanks can differ, and why a stated drawdown is only meaningful at a stated pressure setting.</p>
+  <p><strong>Why it matters:</strong> bigger drawdown means the pump runs longer and starts less often. Frequent short cycling wears the pump and the switch. Many manufacturers ask for roughly <strong>at least one minute of run time</strong> per cycle as general guidance, so the drawdown you want is about your pump’s gpm × 1 minute.</p>
+  <div class="mini-box"><table class="mini">
+    <thead><tr><th>Switch setting</th><th>Approx. drawdown as share of tank volume*</th></tr></thead>
+    <tbody><tr><td>30/50 psi</td><td>about 30%</td></tr><tr><td>40/60 psi</td><td>about 26%</td></tr><tr><td>50/70 psi</td><td>about 23%</td></tr></tbody>
+  </table></div>
+  <p class="count">*Ideal-gas estimate with the correct precharge; real tanks differ. Use the manufacturer’s own drawdown table.</p>
+  <div class="example"><p><strong>Example.</strong> A 10 gpm pump at 40/60 psi wants roughly 10 gallons of drawdown for a one-minute run. At about 26%, that points to a tank with around 40 gallons or more of total volume. Compare tanks by their listed drawdown at your setting, not by total gallons.</p></div>
+  <p><strong>Precharge:</strong> the air pressure in the tank should be about <strong>2 psi below the cut-in</strong> pressure (38 psi for a 40/60 switch). Check it with the pump switched off at the breaker and the tank drained of water pressure, using a tire gauge on the air valve. Disconnect power first.</p>
+
+  <h2 id="shallow-deep">4. Shallow vs deep wells</h2>
+  <p>A pump above ground can only <em>pull</em> water up with suction, and atmospheric pressure limits how far. In practice about <strong>25 ft</strong> of lift is the working limit for a shallow-well pump (less at altitude, with long pipe runs, or with warm water).</p>
+  <ul>
+    <li><strong>Shallow-well jet pumps</strong> sit at the wellhead or in the house, with one pipe into the well.</li>
+    <li><strong>Deep-well jets</strong> put an ejector down in the well so the pump can serve deeper water, using two pipes. They get less efficient the deeper they work.</li>
+    <li><strong>Submersibles</strong> sit in the water and <em>push</em> it up, so depth is limited by pump head and motor, not suction. They are the usual choice for deeper wells.</li>
+  </ul>
+
+  <h2 id="wires">5. 2-wire vs 3-wire submersibles</h2>
+  <ul>
+    <li><strong>2-wire:</strong> the motor’s starting parts are inside the motor, so only two power wires (plus ground) run down the well and no control box is needed. Simple, but typically offered in smaller sizes.</li>
+    <li><strong>3-wire:</strong> starting parts live in an above-ground <strong>control box</strong>, with three power wires (plus ground) down the well. The box can be serviced without pulling the pump, and 3-wire motors go to larger sizes.</li>
+  </ul>
+  <p>A 3-wire motor needs the matching control box for its horsepower, voltage and brand specification — see the <a href="controls.html">Controls</a> catalog. Three-phase motors use different starters and are not covered by this rule of thumb.</p>
+
+  <h2 id="cp">6. Constant pressure vs conventional</h2>
+  <ul>
+    <li><strong>Conventional:</strong> a pressure switch and a tank. Pressure swings between cut-in and cut-out (often 20 psi apart). Simple and lower cost.</li>
+    <li><strong>Constant pressure:</strong> a variable-speed drive adjusts the motor speed to hold one pressure, usually with a much smaller tank. Steadier showers, softer starts, and often smoother on the electrical supply, at higher cost and with a drive that has to match the motor.</li>
+  </ul>
+  <p>Browse both in the <a href="constant-pressure.html">Constant-pressure systems</a> and <a href="tanks.html">Pressure tanks</a> catalogs.</p>
+</article>
+</div>
+<footer class="site-footer">
+<p class="kofi">Free and ad-free. If this site helped you, <a href="https://ko-fi.com/marcustravis" target="_blank" rel="noopener">buy me a coffee →</a></p>
+</footer>
+<script>
+(function () {
+  function syncNavH() {
+    var nav = document.querySelector(".topnav");
+    if (!nav) return;
+    document.documentElement.style.setProperty("--nav-h", Math.ceil(nav.getBoundingClientRect().height) + "px");
+  }
+  syncNavH();
+  window.addEventListener("resize", syncNavH);
+  if (window.ResizeObserver && document.querySelector(".topnav")) {
+    new ResizeObserver(syncNavH).observe(document.querySelector(".topnav"));
+  }
+})();
+</script>
+<script src="compare.js?v=20261115a"></script>
+<script src="nav.js?v=20261115a"></script>
+
+<!-- Cloudflare Web Analytics --><script type='module' src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "77996a705a3343ec9fd576f961e5d874"}'></script><!-- End Cloudflare Web Analytics -->
+</body>
+</html>

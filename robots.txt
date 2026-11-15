@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://wellpumpchart.pages.dev/sitemap.xml

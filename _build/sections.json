@@ -1,0 +1,52 @@
+[
+  {
+    "slug": "submersible", "file": "submersible.html", "json": "submersible.json",
+    "title": "Submersible pumps", "nav": "Submersible", "noun": "pumps", "card_noun": "pumps",
+    "curve_label": "Pump curve / data sheet",
+    "cols": ["brand", "model", "type", "hp", "vp", "flow", "maxhead", "minwell", "warranty", "price", "links"],
+    "filters": ["brand", "type", "well", "hp", "phase"],
+    "description": "Compare residential and light-ag submersible well pumps across brands: HP, voltage and phase, flow at head, shutoff head, minimum well size, warranty and price, with links to official pump curves.",
+    "lede": "Pumps that sit down in the well and push water up. One row per commonly sold model, with flow, head, well size, warranty, and price, and links to each maker’s own curve or data sheet.",
+    "card": "4-inch and similar pumps, 2-wire and 3-wire, from small shallow-water models to deep-set pumps."
+  },
+  {
+    "slug": "jet", "file": "jet.html", "json": "jet.json",
+    "title": "Jet pumps", "nav": "Jet", "noun": "pumps", "card_noun": "pumps",
+    "curve_label": "Pump curve / data sheet",
+    "cols": ["brand", "model", "type", "well", "hp", "vp", "flow", "maxhead", "minwell", "warranty", "price", "links"],
+    "filters": ["brand", "type", "well", "hp", "phase"],
+    "description": "Compare shallow-well, deep-well, and convertible jet pumps across brands: HP, voltage, flow at head, warranty and price, with links to official data sheets.",
+    "lede": "Above-ground pumps that pull water up with suction, plus deep-well versions that use an ejector in the well. Check the Well filter: shallow-well jets only work when the water is within suction range.",
+    "card": "Shallow-well, deep-well, and convertible jets that sit at the wellhead or in the house."
+  },
+  {
+    "slug": "constant-pressure", "file": "constant-pressure.html", "json": "constant-pressure.json",
+    "title": "Constant-pressure systems", "nav": "Const. pressure", "noun": "systems", "card_noun": "systems",
+    "curve_label": "Pump curve / data sheet",
+    "cols": ["brand", "model", "type", "well", "hp", "vp", "flow", "maxhead", "minwell", "setting", "maxpsi", "warranty", "price", "links"],
+    "filters": ["brand", "type", "well", "hp", "phase"],
+    "description": "Compare constant-pressure well water systems — variable-speed drives and matched pumps from Grundfos, Franklin, Goulds, Pentair and others — by HP, voltage, flow, pressure and price.",
+    "lede": "Variable-speed systems that hold steady water pressure instead of cycling between a cut-in and cut-out. Rows are complete systems or drive-and-pump combinations, as each maker sells them.",
+    "card": "Variable-speed drives and pump systems that hold steady pressure with a small tank."
+  },
+  {
+    "slug": "tanks", "file": "tanks.html", "json": "tanks.json",
+    "title": "Pressure tanks", "nav": "Tanks", "noun": "tanks", "card_noun": "tanks",
+    "curve_label": "Data sheet",
+    "cols": ["brand", "model", "type", "tank", "drawdown", "maxpsi", "warranty", "price", "links"],
+    "filters": ["brand", "type"],
+    "description": "Compare well pressure tanks by total volume, drawdown at a stated pressure setting, maximum pressure, warranty and price, with links to official data sheets.",
+    "lede": "Diaphragm, bladder, and air-over-water tanks. Compare drawdown, not just total gallons — drawdown is the water you actually get between pump starts, and it depends on the pressure setting.",
+    "card": "Diaphragm and bladder tanks compared by total gallons and drawdown at a stated setting."
+  },
+  {
+    "slug": "controls", "file": "controls.html", "json": "controls.json",
+    "title": "Controls: switches, control boxes, VFDs", "nav": "Controls", "noun": "controls", "card_noun": "controls",
+    "curve_label": "Data sheet",
+    "cols": ["brand", "model", "type", "well", "hp", "vp", "setting", "maxpsi", "warranty", "price", "links"],
+    "filters": ["brand", "type", "well", "phase"],
+    "description": "Compare well pump controls: pressure switches, 3-wire control boxes, pump protection devices, and standalone variable-frequency drives, by rating, setting, warranty and price.",
+    "lede": "The parts that start, stop, and protect the pump: pressure switches, 3-wire control boxes, protection devices, and drives sold on their own. Match the rating to your pump’s HP and voltage.",
+    "card": "Pressure switches, 3-wire control boxes, pump protectors, and drives sold separately."
+  }
+]

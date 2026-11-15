@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Compare · Well Pump Reference Library</title>
+<meta name="description" content="Compare up to four well pumps, tanks, or controls side by side: every spec, price source and official link in one table.">
+<link rel="canonical" href="https://wellpumpchart.pages.dev/compare">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="Well Pump Reference Library">
+<meta property="og:title" content="Compare · Well Pump Reference Library">
+<meta property="og:description" content="Compare up to four well pumps, tanks, or controls side by side: every spec, price source and official link in one table.">
+<meta property="og:url" content="https://wellpumpchart.pages.dev/compare">
+<meta property="og:image" content="https://wellpumpchart.pages.dev/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Well Pump Reference Library: a well casing with a submersible pump, pressure tank and gauge in teal line art">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Compare · Well Pump Reference Library">
+<meta name="twitter:description" content="Compare up to four well pumps, tanks, or controls side by side: every spec, price source and official link in one table.">
+<meta name="twitter:image" content="https://wellpumpchart.pages.dev/og-image.png">
+<link rel="icon" href="favicon.ico" sizes="any">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="theme.css?v=20261115a">
+</head>
+<body data-page="compare">
+<div class="page-bg"></div>
+<a class="skip" href="#main">Skip to content</a>
+<nav class="topnav" aria-label="Primary">
+  <div class="inner">
+    <a class="brand" href="index.html">
+      <svg width="28" height="28" viewBox="0 0 32 32" aria-hidden="true"><rect x="1" y="1" width="30" height="30" rx="6" fill="none" stroke="#3fc1c9" stroke-width="1.5"/><path d="M16 6 C16 6 8.5 14.5 8.5 19.5 a7.5 7.5 0 0 0 15 0 C23.5 14.5 16 6 16 6 Z" fill="none" stroke="#9be7ea" stroke-width="1.6"/><path d="M12.5 20 q3.5 -3 7 0" fill="none" stroke="#3fc1c9" stroke-width="1.5"/></svg>
+      Well Pump Reference Library
+    </a>
+    <button type="button" class="nav-toggle" aria-expanded="false" aria-controls="primary-nav" aria-label="Open menu">☰ Menu</button>
+    <ul class="nav-links" id="primary-nav"><li><a href="index.html">Home</a></li><li><a href="submersible.html">Submersible</a></li><li><a href="jet.html">Jet</a></li><li><a href="constant-pressure.html">Const. pressure</a></li><li><a href="tanks.html">Tanks</a></li><li><a href="controls.html">Controls</a></li><li><a href="sizing.html">Sizing</a></li><li><a href="compare.html" aria-current="page">Compare <span class="cmp-n" hidden>0</span></a></li><li><a href="updates.html">Updates</a></li><li><a href="index.html#about">About</a></li></ul>
+  </div>
+</nav>
+<div class="wrap chart-wrap" id="main">
+<header class="hero compact">
+  <div class="hero-art"><svg class="hero-svg" viewBox="0 0 1200 420" preserveAspectRatio="xMaxYMid slice" aria-hidden="true">
+  <defs>
+    <linearGradient id="hsky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#0a2236"/>
+      <stop offset="40%" stop-color="#071622"/>
+      <stop offset="100%" stop-color="#050d16"/>
+    </linearGradient>
+    <linearGradient id="hwater" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#3fc1c9" stop-opacity="0.30"/>
+      <stop offset="100%" stop-color="#3fc1c9" stop-opacity="0.04"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="420" fill="url(#hsky)"/>
+  <!-- ground line and soil strata -->
+  <g fill="none" stroke="#8fb4c8" stroke-width="1.2">
+    <path d="M0,120 L1200,120" stroke-opacity="0.5"/>
+    <path d="M0,170 C200,160 400,182 600,172 S1000,166 1200,174" stroke-opacity="0.16"/>
+    <path d="M0,225 C240,215 420,238 640,226 S1000,220 1200,230" stroke-opacity="0.14"/>
+    <path d="M0,300 C220,292 440,312 660,300 S1000,296 1200,304" stroke-opacity="0.12"/>
+    <path d="M0,370 C260,362 460,380 700,368 S1020,364 1200,372" stroke-opacity="0.10"/>
+  </g>
+  <!-- water table -->
+  <path d="M0,248 C60,242 120,254 180,248 S300,242 360,248 S480,254 540,248 S660,242 720,248 S840,254 900,248 S1020,242 1080,248 S1160,252 1200,248 L1200,420 L0,420 Z" fill="url(#hwater)"/>
+  <path d="M0,248 C60,242 120,254 180,248 S300,242 360,248 S480,254 540,248 S660,242 720,248 S840,254 900,248 S1020,242 1080,248 S1160,252 1200,248" fill="none" stroke="#3fc1c9" stroke-opacity="0.7" stroke-width="1.4"/>
+  <!-- well casing -->
+  <g fill="none" stroke="#9be7ea" stroke-width="2">
+    <path d="M840,112 L840,392"/>
+    <path d="M900,112 L900,392"/>
+    <path d="M830,112 L910,112"/>
+    <path d="M840,392 L900,392" stroke-dasharray="4 5" stroke-opacity="0.5"/>
+  </g>
+  <!-- water inside casing -->
+  <rect x="841" y="252" width="58" height="140" fill="#3fc1c9" fill-opacity="0.12"/>
+  <!-- drop pipe and submersible pump -->
+  <g fill="none" stroke="#3fc1c9" stroke-width="2">
+    <path d="M870,112 L870,318"/>
+    <rect x="855" y="318" width="30" height="46" rx="5"/>
+    <path d="M855,332 L885,332 M855,344 L885,344" stroke-opacity="0.6"/>
+    <rect x="859" y="364" width="22" height="22" rx="4"/>
+  </g>
+  <!-- pitless line to house, pressure tank, gauge, switch -->
+  <g fill="none" stroke="#3fc1c9" stroke-width="2">
+    <path d="M870,150 L720,150 L720,134"/>
+    <rect x="620" y="42" width="120" height="92" rx="46" stroke="#9be7ea"/>
+    <path d="M560,92 L620,92"/>
+    <circle cx="540" cy="92" r="20"/>
+    <path d="M540,92 L551,81" stroke-width="2"/>
+    <rect x="490" y="62" width="30" height="24" rx="3" stroke-opacity="0.7"/>
+    <path d="M520,74 L520,92 L520,92" stroke-opacity="0.5"/>
+  </g>
+  <g fill="#3fc1c9" fill-opacity="0.9">
+    <circle cx="540" cy="92" r="2.6"/>
+    <circle cx="870" cy="150" r="3"/>
+  </g>
+  <!-- flow arrows -->
+  <g fill="none" stroke="#9be7ea" stroke-opacity="0.7" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M870,290 l-4,8 m4,-8 l4,8"/>
+    <path d="M870,220 l-4,8 m4,-8 l4,8"/>
+    <path d="M800,150 l8,-4 m-8,4 l8,4"/>
+  </g>
+  <!-- well cap tick marks and depth scale -->
+  <g stroke="#8fb4c8" stroke-opacity="0.35" stroke-width="1">
+    <path d="M1010,120 L1010,392"/>
+    <path d="M1002,120 L1018,120 M1002,188 L1018,188 M1002,256 L1018,256 M1002,324 L1018,324 M1002,392 L1018,392"/>
+  </g>
+</svg>
+</div>
+  <div class="hero-copy">
+    <span class="eyebrow">Side by side</span>
+    <h1>Compare</h1>
+    <p class="lede">Up to four items from any catalog, every field and source in one view. Rows that are blank for all chosen items are hidden.</p>
+    
+  </div>
+</header>
+<aside class="safety" role="note"><strong>Safety note.</strong> This is a reference, not installation advice. Confirm your well&#x27;s depth, water level, recovery rate, casing size, and your electrical supply (voltage, phase, wire size, breaker) with a licensed well or pump installer and electrician before buying or installing anything. Specs change — check the manufacturer&#x27;s current page.</aside>
+  <div class="cmp-actions"><button type="button" class="btn" id="cmp-clear" hidden>Clear all</button>
+    <span class="count">Selections are saved in this browser only. Prices: Price = lowest in-stock price for a new unit of that exact model seen on a public US retailer or manufacturer-store listing (seller named and linked), checked on the date shown. No affiliate links. If no live price was found, a $ band is shown as an editorial estimate.</span></div>
+  <div class="cmp-wrap" id="cmp-root" aria-live="polite"><div class="cmp-empty">Loading…</div></div>
+</div>
+<footer class="site-footer">
+<p class="kofi">Free and ad-free. If this site helped you, <a href="https://ko-fi.com/marcustravis" target="_blank" rel="noopener">buy me a coffee →</a></p>
+</footer>
+<script>
+(function () {
+  function syncNavH() {
+    var nav = document.querySelector(".topnav");
+    if (!nav) return;
+    document.documentElement.style.setProperty("--nav-h", Math.ceil(nav.getBoundingClientRect().height) + "px");
+  }
+  syncNavH();
+  window.addEventListener("resize", syncNavH);
+  if (window.ResizeObserver && document.querySelector(".topnav")) {
+    new ResizeObserver(syncNavH).observe(document.querySelector(".topnav"));
+  }
+})();
+</script>
+<script src="compare.js?v=20261115a"></script>
+<script src="nav.js?v=20261115a"></script>
+<script src="data.js?v=20261115a"></script>
+<!-- Cloudflare Web Analytics --><script type='module' src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "77996a705a3343ec9fd576f961e5d874"}'></script><!-- End Cloudflare Web Analytics -->
+</body>
+</html>
