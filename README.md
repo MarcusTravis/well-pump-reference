@@ -24,4 +24,4 @@ The site URL is set once as `CANON` in `_build/generate.py` (canonicals, sitemap
 
 Rows live in `_build/submersible.json`, `jet.json`, `constant-pressure.json`, `tanks.json`, and `controls.json`. The schema, the single price rule, and the hard rules (facts only from official pages and public listings, no invented numbers, no copied marketing text or curves) are in [`_build/SCHEMA.md`](_build/SCHEMA.md). After changing facts, update the monthly entry in `changelog()` in `generate.py` (this regenerates `CHANGELOG.md` and `updates.html`).
 
-Brand logos: see [`icons/README.md`](icons/README.md). Until official marks are added, brands appear as text badges.
+Brand logos: see [`icons/README.md`](icons/README.md). Brands without an official icon appear as text badges.

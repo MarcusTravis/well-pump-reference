@@ -320,7 +320,7 @@ def write_home(sections_items):
       <h2>About this site</h2>
       <p>The Well Pump Reference Library is free and has no ads, no affiliate links, and no tracking parameters in its links. Facts come from official manufacturer pages and catalog PDFs and from public retailer listings, last checked {CHECKED}. Notes are written in original words; pump curves and marketing text are never copied, only linked to the maker’s official page.</p>
       <p><strong>Price rule.</strong> {e(PRICE_RULE)} If no live price was seen for that exact model, the cell shows an editorial band, labelled “Editorial estimate”: {e(BANDS)}.</p>
-      <p><strong>Logos.</strong> Brand marks appear only once official ones are added (see <code>icons/README.md</code>); until then each brand is shown as a plain text badge. Specs change, so always check the manufacturer’s current page.</p>
+      <p><strong>Logos.</strong> Official brand marks are shown where the maker’s own site offers one (sources in <code>icons/README.md</code>); other brands appear as a plain text badge. Marks belong to their owners. Specs change, so always check the manufacturer’s current page.</p>
       <p><a href="updates.html">See what changed →</a></p>
     </section>
   </section>
@@ -557,9 +557,10 @@ The site URL is set once as `CANON` in `_build/generate.py` (canonicals, sitemap
 
 Rows live in `_build/submersible.json`, `jet.json`, `constant-pressure.json`, `tanks.json`, and `controls.json`. The schema, the single price rule, and the hard rules (facts only from official pages and public listings, no invented numbers, no copied marketing text or curves) are in [`_build/SCHEMA.md`](_build/SCHEMA.md). After changing facts, update the monthly entry in `changelog()` in `generate.py` (this regenerates `CHANGELOG.md` and `updates.html`).
 
-Brand logos: see [`icons/README.md`](icons/README.md). Until official marks are added, brands appear as text badges.
+Brand logos: see [`icons/README.md`](icons/README.md). Brands without an official icon appear as text badges.
 """)
-    write("icons/README.md", """# Brand icons
+    if not (ROOT / "icons" / "README.md").exists():  # hand-maintained once icons exist
+      write("icons/README.md", """# Brand icons
 
 Drop a brand's **official** mark here as `<brand-slug>.svg` or `<brand-slug>.png` (for example `grundfos.svg`, `franklin-electric.png`; the slug is the brand name lower-cased with non-alphanumerics replaced by `-`). The generator picks it up automatically on the next run.
 
