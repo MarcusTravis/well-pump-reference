@@ -121,6 +121,8 @@ def head(title, description, path, jsonld=None):
 <title>{e(title)}</title>
 <meta name="description" content="{e(description)}">
 <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1">
+<meta name="google-site-verification" content="DBsd4dRo6CszvxQNH2xXlYTnwq2I4v30uIsV_nwwEc8">
+<meta name="msvalidate.01" content="77C3B18F4D942281667A47021926052C">
 <link rel="canonical" href="{e(url)}">
 <meta property="og:type" content="{typ}">
 <meta property="og:site_name" content="{SITE}">
