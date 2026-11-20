@@ -13,7 +13,10 @@ OUT = Path(os.environ.get("WP_OUT_DIR") or ROOT)
 CANON = "https://wellpumpchart.pages.dev"
 SITE = "Well Pump Reference Library"
 CHECKED, CHECKED_ISO = "Nov 15, 2026", "2026-11-15"
-ASSET_V = "20261115a"
+ASSET_V = "20261120a"
+BUILT, BUILT_ISO = "Nov 20, 2026", "2026-11-20"   # last site (not data) update; sitemap lastmod
+INDEXNOW_KEY = "acfcbfb122853f68d9e9f8acec0d56ab"
+CREATOR = {"@type": "Person", "name": "Marcus Travis"}
 OG_ALT = "Well Pump Reference Library: a well casing with a submersible pump, pressure tank and gauge in teal line art"
 CF = ("<!-- Cloudflare Web Analytics --><script type='module' src='https://static.cloudflareinsights.com/beacon.min.js' "
       "data-cf-beacon='{\"token\": \"77996a705a3343ec9fd576f961e5d874\"}'></script><!-- End Cloudflare Web Analytics -->")
@@ -24,7 +27,7 @@ SAFETY = ("This is a reference, not installation advice. Confirm your well's dep
           "supply (voltage, phase, wire size, breaker) with a licensed well or pump installer and electrician before buying or installing anything. "
           "Specs change — check the manufacturer's current page.")
 FONTS = ("https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800&family=IBM+Plex+Mono:wght@400;500"
-         "&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap")
+         "&family=IBM+Plex+Sans:wght@400;500;600;700&display=optional")
 FIELDS = ["id", "brand", "series", "model", "type", "well", "hp", "voltage", "phase", "flow_gpm", "flow_at_ft", "max_head_ft",
           "min_well_in", "tank_gal", "drawdown_gal", "drawdown_note", "max_psi", "setting", "warranty", "price_usd", "price_source",
           "price_url", "price_checked", "price_scale", "product_url", "curve_url", "spec_url", "notes"]
@@ -33,7 +36,7 @@ HERO_SVG = (BUILD / "hero.svg").read_text()
 SECTIONS = json.loads((BUILD / "sections.json").read_text())
 
 NAV = [("index.html", "Home")] + [(s["file"], s["nav"]) for s in SECTIONS] + [
-    ("sizing.html", "Sizing"), ("compare.html", "Compare"), ("updates.html", "Updates"), ("index.html#about", "About")]
+    ("sizing.html", "Sizing"), ("faq.html", "FAQ"), ("compare.html", "Compare"), ("updates.html", "Updates"), ("index.html#about", "About")]
 
 
 def e(s):
@@ -107,6 +110,8 @@ ALL_IDS = set()
 def head(title, description, path, jsonld=None):
     url = CANON + (path if path != "/" else "/")
     typ = "website" if path == "/" else "article"
+    if isinstance(jsonld, list):
+        jsonld = {"@context": "https://schema.org", "@graph": [{k: v for k, v in x.items() if k != "@context"} for x in jsonld]}
     ld = f'\n<script type="application/ld+json">{js(jsonld)}</script>' if jsonld else ""
     return f"""<!doctype html>
 <html lang="en">
@@ -115,9 +120,11 @@ def head(title, description, path, jsonld=None):
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>{e(title)}</title>
 <meta name="description" content="{e(description)}">
+<meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1">
 <link rel="canonical" href="{e(url)}">
 <meta property="og:type" content="{typ}">
 <meta property="og:site_name" content="{SITE}">
+<meta property="og:locale" content="en_US">
 <meta property="og:title" content="{e(title)}">
 <meta property="og:description" content="{e(description)}">
 <meta property="og:url" content="{e(url)}">
@@ -134,7 +141,7 @@ def head(title, description, path, jsonld=None):
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="{FONTS}">
+<link rel="stylesheet" href="{FONTS.replace('&', '&amp;')}">
 <link rel="stylesheet" href="theme.css?v={ASSET_V}">{ld}
 </head>
 """
@@ -203,9 +210,278 @@ def safety():
 def page(name, title, desc, path, current, body, scripts="", jsonld=None, page_id=""):
     pid = f' data-page="{page_id}"' if page_id else ""
     html = head(title, desc, path, jsonld) + f"<body{pid}>\n" + f'<div class="page-bg"></div>\n' + nav(current)
-    html += body + footer()
+    html += "<main>\n" + body + "</main>\n" + footer()
     html += f'<script src="compare.js?v={ASSET_V}"></script>\n<script src="nav.js?v={ASSET_V}"></script>\n{scripts}\n{CF}\n</body>\n</html>\n'
     write(name, html)
+
+
+
+# ---------------------------------------------------------------- SEO helpers (Nov 2026 SEO pass)
+SEO_TITLE = {
+    "submersible": "Submersible Well Pump Comparison Chart ({n} models)",
+    "jet": "Jet Pump Comparison Chart: Shallow and Deep Well ({n} models)",
+    "constant-pressure": "Constant-Pressure Well Pump Systems Compared ({n} models)",
+    "tanks": "Well Pressure Tank Comparison Chart: Size and Drawdown ({n} tanks)",
+    "controls": "Well Pump Controls Compared: Switches, Control Boxes, VFDs ({n})",
+}
+HP_RANGES = [("≤1/2", lambda h: h <= 0.5), ("3/4–1", lambda h: 0.5 < h <= 1), ("1.5–2", lambda h: 1 < h < 3), ("3+", lambda h: h >= 3)]
+
+
+def _has(v):
+    return v is not None and v != ""
+
+
+def money(v):
+    return f"${v:,.0f}"
+
+
+def pstats(items, skip_types=()):
+    p = sorted(float(it["price_usd"]) for it in items if it["price_usd"] is not None and not any(t in (it["type"] or "") for t in skip_types))
+    if not p:
+        return None
+    mid = len(p) // 2
+    med = p[mid] if len(p) % 2 else (p[mid - 1] + p[mid]) / 2
+    return {"n": len(p), "min": money(p[0]), "max": money(p[-1]), "med": money(med)}
+
+
+def chips_html(sec, items):
+    """Same chips app.js builds, rendered at build time so the toolbar has its final height before scripts run (no layout shift)."""
+    out = []
+    for gk in sec["filters"]:
+        if gk in ("brand", "type"):
+            vals = sorted({it[gk] for it in items if _has(it[gk])}, key=lambda x: x.lower())
+            opts = [(v, v, sum(1 for it in items if it[gk] == v)) for v in vals]
+            label = "Brand" if gk == "brand" else "Type"
+        elif gk == "well":
+            opts = [(v, l, sum(1 for it in items if v in it["well"])) for v, l in (("shallow", "Shallow well"), ("deep", "Deep well"))]
+            label = "Well depth"
+        elif gk == "hp":
+            opts = [(str(i), r[0] + " HP", sum(1 for it in items if _has(it["hp"]) and r[1](float(it["hp"])))) for i, r in enumerate(HP_RANGES)]
+            label = "Horsepower"
+        elif gk == "phase":
+            opts = [(v, f"{v}-phase", sum(1 for it in items if _has(it["phase"]) and v in str(it["phase"]))) for v in ("1", "3")]
+            label = "Phase"
+        else:
+            continue
+        opts = [o for o in opts if o[2] > 0]
+        if len(opts) < 2:
+            continue
+        b = "".join(f'<button type="button" class="chip" data-g="{gk}" data-v="{e(v)}" aria-pressed="false">{e(l)}<small>{n}</small></button>' for v, l, n in opts)
+        out.append(f'<div class="fgroup"><span class="flabel">{e(label)}</span><div class="chips" role="group" aria-label="{e(label)}">'
+                   f'<button type="button" class="chip" data-g="{gk}" data-v="" aria-pressed="true">All</button>{b}</div></div>')
+    return "".join(out)
+
+
+def crumbs(*pairs):
+    """pairs of (name, path); Home is added first."""
+    allp = [("Home", "/")] + list(pairs)
+    return {"@context": "https://schema.org", "@type": "BreadcrumbList",
+            "itemListElement": [{"@type": "ListItem", "position": i + 1, "name": n, "item": CANON + p} for i, (n, p) in enumerate(allp)]}
+
+
+def related(current):
+    links = [(s["file"], s["title"].split(":")[0]) for s in SECTIONS] + [("sizing.html", "Sizing basics"), ("faq.html", "Well pump FAQ"), ("compare.html", "Compare tool")]
+    return ('<nav class="related" aria-label="Related pages"><strong>Related:</strong> ' +
+            " · ".join(f'<a href="{h}">{e(n)}</a>' for h, n in links if h != current) + "</nav>\n")
+
+
+def section_answer(sec, items):
+    n = len(items)
+    brands = len({it["brand"] for it in items if it["brand"]})
+    ps = pstats(items, ("pump end only",) if sec["slug"] == "submersible" else ())
+    price = (f" The {ps['n']} rows with a live retailer price (checked {CHECKED}) ran from {ps['min']} to {ps['max']}, "
+             f"with a median of {ps['med']}. That is equipment only, not installation.") if ps else ""
+    s = sec["slug"]
+    if s == "submersible":
+        txt = (f"A submersible well pump sits under water inside the well casing and pushes water up, so it is not limited by suction the way an "
+               f"above-ground pump is. That makes it the usual choice once the water is deeper than about 25 ft. This chart compares {n} residential "
+               f"submersibles for 4-inch wells from {brands} brands, 1/2 to 2 HP, including 2-wire models (no control box) and 3-wire models (need a matching "
+               f"control box above ground). Pick by flow at your total head, using the official curve each row links to." + price.replace("rows with a live", "complete pump-and-motor units with a live"))
+    elif s == "jet":
+        txt = (f"A jet pump sits above ground and draws water up by suction. A shallow-well jet works to about 25 ft of lift; a convertible jet can serve "
+               f"a deeper well with an ejector placed down the well, at lower flow as depth grows. This chart compares {n} shallow-well and convertible "
+               f"jet pumps from {brands} brands, all dual-voltage 115/230 V, with flow at the lift and pressure each maker states." + price)
+    elif s == "constant-pressure":
+        txt = (f"A constant-pressure system uses a variable-frequency drive (VFD) to speed the pump up or down and hold one set pressure, instead of letting "
+               f"pressure swing between a switch’s cut-in and cut-out. It usually needs only a small pressure tank. This chart compares {n} systems, "
+               f"drives and all-in-one boosters from {brands} brands. The drive must be matched to the motor it runs." + price)
+    elif s == "tanks":
+        txt = (f"A pressure tank stores water under air pressure so the pump does not start every time a tap opens. Size it by drawdown, the water "
+               f"delivered between cut-in and cut-out, not by total gallons: aim for about one minute of pump run time per cycle, so a 10 gpm pump wants "
+               f"roughly 10 gallons of drawdown (about a 40-gallon-plus tank at 40/60 psi). This chart compares {n} tanks from {brands} brands." + price)
+    else:
+        txt = (f"Controls start, stop and protect the pump. A pressure switch turns it on at the cut-in pressure and off at cut-out (30/50 and 40/60 psi "
+               f"are common factory settings). A 3-wire submersible motor needs a control box matched to its brand, horsepower and voltage. Pump "
+               f"protectors guard against dry running and bad voltage, and VFDs give constant pressure. This chart compares {n} controls from {brands} brands." + price)
+    return f'<section class="answer" aria-label="In short"><p><strong>In short.</strong> {e(txt)} See the <a href="faq.html">FAQ</a> and <a href="sizing.html">sizing basics</a> for more.</p></section>\n'
+
+
+def dataset_ld(sec, items, title):
+    vm = {"brand": "Brand", "model": "Series / model", "type": "Type", "well": "Well depth (shallow / deep)", "hp": "Horsepower", "vp": "Voltage and phase",
+          "flow": "Flow (gpm) at stated head (ft)", "maxhead": "Maximum / shutoff head (ft)", "minwell": "Minimum well diameter (in)", "tank": "Total tank volume (gal)",
+          "drawdown": "Drawdown (gal) at stated pressure setting", "maxpsi": "Maximum working pressure (psi)", "setting": "Pressure setting / controls",
+          "warranty": "Warranty", "price": "Price (USD) with source and check date", "links": "Official product, curve and data sheet links"}
+    return {"@context": "https://schema.org", "@type": "Dataset", "name": title, "description":
+            f"{sec['description']} {len(items)} rows. Specs from official manufacturer pages and catalog PDFs; prices from public US retailer listings with "
+            f"seller, link and check date, or an editorial $ band where no live price was seen. Data last checked {CHECKED}.",
+            "url": f"{CANON}/{sec['slug']}", "creator": CREATOR, "publisher": CREATOR, "dateModified": CHECKED_ISO, "isAccessibleForFree": True,
+            "inLanguage": "en-US", "spatialCoverage": "United States",
+            "keywords": [sec["title"].split(":")[0], "well pump", "comparison chart", "specifications", "prices"],
+            "variableMeasured": [vm[c] for c in sec["cols"] if c in vm],
+            "includedInDataCatalog": {"@type": "DataCatalog", "name": SITE, "url": CANON + "/"}}
+
+
+# ---------------------------------------------------------------- FAQ
+def faq_items(sections_items):
+    by = {s["slug"]: i for s, i in sections_items}
+    n = {k: len(v) for k, v in by.items()}
+    sub = pstats(by.get("submersible", []), ("pump end only",)); jet = pstats(by.get("jet", [])); cp = pstats(by.get("constant-pressure", []))
+    tk = pstats(by.get("tanks", [])); ct = pstats(by.get("controls", []))
+    sub115 = [it for it in by.get("submersible", []) if it["voltage"] and "115" in str(it["voltage"])]
+    sub115_hp = max((float(it["hp"]) for it in sub115 if _has(it["hp"])), default=None)
+
+    def rng(x, what):
+        return f"{what}: {x['min']} to {x['max']} (median {x['med']}, {x['n']} priced)" if x else ""
+    costs = "; ".join(r for r in [rng(sub, "submersible pump-and-motor units"), rng(jet, "jet pumps"), rng(cp, "constant-pressure systems and drives"),
+                                  rng(tk, "pressure tanks"), rng(ct, "controls")] if r)
+    v115 = (f"In this library, the 115 V submersibles are all {U_hp(sub115_hp)} HP or smaller, while every jet pump listed is dual-voltage 115/230 V and is "
+            f"switched by a wiring change described in its manual. ") if sub115_hp else ""
+    return [
+        ("What size well pump do I need?",
+         "Size a pump from two numbers: the flow you need in gallons per minute (gpm), and the total dynamic head (TDH) in feet the pump must work against "
+         "at that flow. A common starting point is about 1 gpm per water fixture in the house, plus any irrigation zone that runs at the same time; a typical "
+         "3-bedroom, 2-bath home often lands around 6 to 12 gpm. TDH is the lift from the pumping water level, plus the switch’s cut-out pressure × 2.31, plus "
+         "pipe friction loss. Then pick a pump whose official curve delivers your gpm at your TDH, and never more gpm than the well can recover. Horsepower "
+         "follows from the curve, not the other way round. Worked examples are on <a href=\"sizing.html\">Sizing basics</a>; have a licensed installer confirm."),
+        ("Should I get a submersible pump or a jet pump?",
+         "Use a jet pump when the water is shallow (within about 25 ft of the pump), or a convertible jet with a down-well ejector for a moderately deep well. "
+         "It sits above ground, so it is easy to reach and service. Use a submersible for deeper wells and higher flow: it sits under water in the casing and "
+         "pushes water up, so suction limits do not apply, and it runs quietly out of sight. The trade-off is that servicing a submersible means pulling it out "
+         f"of the well. This library lists <a href=\"submersible.html\">{n.get('submersible', 0)} submersibles</a> and "
+         f"<a href=\"jet.html\">{n.get('jet', 0)} jet pumps</a>."),
+        ("What is the difference between a shallow-well and a deep-well jet pump?",
+         "A shallow-well jet has its ejector built into the pump body and lifts water by suction through a single pipe, which limits it to about 25 ft of lift. "
+         "A deep-well (convertible) jet puts the ejector down in the well and uses two pipes: one sends driving water down, the other brings it back up with the "
+         "well water. That reaches deeper water, but flow falls as depth rises. Convertible pumps can be set up either way, and the ejector or jet kit is often "
+         "sold separately. For example, Wayne lists its CWS50 convertible jet for deep-well use to 90 ft with a separate jet assembly."),
+        ("How deep can a jet pump pull water?",
+         "About 25 ft for a shallow-well jet. Suction is limited by air pressure: at sea level, atmospheric pressure (about 14.7 psi) can hold up a column of "
+         "water roughly 34 ft tall at best, and pipe friction, altitude and warmer water cut that down, so about 25 ft is the practical limit. The "
+         "shallow-well jets listed here from Goulds, Red Lion, Flint & Walling and Wayne are rated for lift to 25 ft. Deeper than that, use a deep-well jet with a down-well ejector or a submersible."),
+        ("What is a constant-pressure well pump system?",
+         "A constant-pressure system uses a variable-frequency drive (VFD) to change the motor’s speed so pressure stays near one set point, instead of swinging "
+         "between a switch’s cut-in and cut-out (for example 40 and 60 psi). You get steadier pressure when several taps run, soft motor starts, and a much "
+         "smaller pressure tank (a small one is still needed). Downsides are a higher price and a drive that must be matched to the motor and installed per the "
+         f"maker’s manual. Compare <a href=\"constant-pressure.html\">{n.get('constant-pressure', 0)} systems and drives</a>."),
+        ("What size pressure tank do I need?",
+         "Size the tank by drawdown, the usable water between cut-in and cut-out, not by its total gallons. Pump and tank makers generally ask for at least about "
+         "one minute of pump run time per cycle, so you want drawdown of roughly your pump’s gpm × 1 minute. At a 40/60 psi setting, drawdown is about a quarter "
+         "of total tank volume, so a 10 gpm pump points to a tank of about 40 gallons or more. Check the maker’s own drawdown table for your setting. "
+         f"Compare <a href=\"tanks.html\">{n.get('tanks', 0)} tanks</a> by drawdown."),
+        ("What should the pressure tank air precharge be?",
+         "About 2 psi below the pump’s cut-in pressure: 28 psi for a 30/50 switch, 38 psi for a 40/60 switch. Check it with the pump’s power off and the water "
+         "pressure drained to zero, using a tire gauge on the tank’s air valve."),
+        ("Should I set my pressure switch to 30/50 or 40/60 psi?",
+         "Both are common factory settings with a 20 psi spread: the pump starts at the lower number and stops at the higher one. 40/60 gives stronger pressure at "
+         "the taps, but the pump must reach 10 psi more (about 23 ft more head), and the same tank gives slightly less drawdown. Before raising the setting, check "
+         "on the pump’s official curve that it can reach the new cut-out at your well’s depth, and reset the tank precharge to 2 psi below the new cut-in. "
+         "Adjust only with the power off, following the switch maker’s instructions. Browse switches in <a href=\"controls.html\">Controls</a>."),
+        ("What is the difference between a 2-wire and a 3-wire submersible pump?",
+         "A 2-wire submersible has its starting parts inside the motor, so it needs no control box: two power wires plus a ground run down the well. A 3-wire "
+         "motor keeps its starting parts (capacitor and relay) in a control box above ground, with three power wires plus a ground. The control box can be "
+         "serviced without pulling the pump, and 3-wire motors are offered in larger sizes. A 3-wire motor needs the control box matched to its brand, "
+         "horsepower and voltage. Both are single-phase; three-phase motors use different starters."),
+        ("Should my well pump be 115 V or 230 V?",
+         "Match the pump to the supply at the well. For the same power, a 230 V motor draws about half the current of a 115 V motor, so it can use smaller wire "
+         "over a long run down the well, which is why most submersibles are 230 V. " + v115 +
+         "Have an electrician check wire size, voltage drop and the breaker."),
+        ("How much does a well pump cost?",
+         f"Equipment prices seen in this library on {CHECKED} (lowest in-stock new-unit price on a public US retailer page): {costs}. These are parts only; "
+         "wire, pipe, fittings, permits and labor are extra, and an installer quotes those. Rows without a live price show an editorial $ band instead."),
+        ("How many people in the US get water from a private well?",
+         "The U.S. Geological Survey estimates that around 43 million people in the United States get household water from private domestic wells, which the "
+         "household owns and maintains rather than a utility "
+         "(<a href=\"https://www.usgs.gov/mission-areas/water-resources/science/domestic-private-supply-wells\" target=\"_blank\" rel=\"noopener\">USGS</a>)."),
+        ("Where do the specs and prices on this site come from?",
+         "Specs come from official manufacturer pages and catalog PDFs; each row links its sources, and pump curves are linked, never reproduced. Prices are the "
+         "lowest in-stock price for a new unit of that exact model on a public US retailer or manufacturer-store listing, with the seller named and linked and the "
+         f"check date shown. There are no ads and no affiliate links. Data was last checked {CHECKED}; see <a href=\"updates.html\">Updates</a>."),
+        ("Can I install a well pump myself?",
+         "This site is a reference, not installation advice. Well pump work involves line-voltage wiring, heavy equipment over an open well, and a risk of "
+         "contaminating the water supply, and local rules may require a licensed contractor. Confirm your well’s depth, water level, recovery rate, casing size "
+         "and electrical supply with a licensed well or pump installer and an electrician before buying or installing anything."),
+    ]
+
+
+def U_hp(h):
+    return {0.5: "1/2", 0.75: "3/4", 0.333: "1/3"}.get(h, f"{h:g}")
+
+
+def strip_tags(s):
+    return H.unescape(re.sub(r"<[^>]+>", "", s))
+
+
+def write_faq(sections_items):
+    qa = faq_items(sections_items)
+    toc = "".join(f'<li><a href="#q{i + 1}">{e(q)}</a></li>' for i, (q, _) in enumerate(qa))
+    body = '<div class="wrap" id="main">\n' + hero("Questions and answers", "Well pump FAQ",
+                                                   "Short, plain-English answers to the questions people ask most about well pumps, pressure tanks and controls, using this library’s data.", checked=True)
+    body += safety()
+    body += f'<article class="prose faq">\n  <nav class="toc" aria-label="On this page"><strong>On this page</strong><ol>{toc}</ol></nav>\n'
+    body += "".join(f'  <h2 id="q{i + 1}">{e(q)}</h2>\n  <p>{a}</p>\n' for i, (q, a) in enumerate(qa))
+    body += "</article>\n" + related("faq.html") + "</div>\n"
+    ld = [{"@context": "https://schema.org", "@type": "FAQPage", "url": CANON + "/faq",
+           "mainEntity": [{"@type": "Question", "name": q, "acceptedAnswer": {"@type": "Answer", "text": strip_tags(a)}} for q, a in qa]},
+          crumbs(("Well pump FAQ", "/faq"))]
+    page("faq.html", f"Well Pump FAQ: sizing, jet vs submersible, tanks, switches · {SITE}",
+         "Plain answers on well pump sizing, submersible vs jet, shallow vs deep well jets, constant pressure, pressure tank size, 30/50 vs 40/60, 2-wire vs 3-wire, 115 V vs 230 V and cost.",
+         "/faq", "faq.html", body, jsonld=ld)
+    print("wrote faq.html")
+    return qa
+
+
+# ---------------------------------------------------------------- llms.txt
+def write_llms(sections_items, qa):
+    total = sum(len(i) for _, i in sections_items)
+    head_ = (f"# {SITE}\n\n> Free, ad-free, cross-brand comparison charts of residential and light-agricultural well pumps and pressure systems: "
+             f"submersible pumps, jet pumps, constant-pressure systems, pressure tanks and controls ({total} rows), plus a sizing guide, FAQ and a side-by-side compare tool.\n\n"
+             f"Specs come from official manufacturer pages and catalog PDFs; every row links its sources, and pump curves are linked rather than reproduced. "
+             f"Price rule: {PRICE_RULE} Editorial bands: {BANDS}. Data last checked {CHECKED} and refreshed monthly. No ads, no affiliate links. "
+             f"Made by Marcus Travis. This is a reference, not installation advice; confirm sizing and wiring with a licensed well or pump installer and an electrician.\n\n")
+    cat = "## Catalogs\n\n" + "".join(f"- [{s['title']}]({CANON}/{s['slug']}): {s['description']} ({len(i)} rows)\n" for s, i in sections_items)
+    guides = (f"\n## Guides and tools\n\n- [Well pump FAQ]({CANON}/faq): sizing, submersible vs jet, shallow vs deep jets, constant pressure, tank size, precharge, 30/50 vs 40/60, 2-wire vs 3-wire, 115 V vs 230 V, cost\n"
+              f"- [Sizing basics]({CANON}/sizing): gpm, total dynamic head with a worked example, tank drawdown, shallow vs deep wells\n"
+              f"- [Compare]({CANON}/compare): up to four items side by side\n- [Updates]({CANON}/updates): monthly changelog\n"
+              f"\n## Optional\n\n- [Full text for LLMs]({CANON}/llms-full.txt): every FAQ answer and every catalog row in plain text\n")
+    write("llms.txt", head_ + cat + guides)
+    full = head_ + "## FAQ\n\n" + "".join(f"### {q}\n\n{strip_tags(a)}\n\n" for q, a in qa)
+    for s, items in sections_items:
+        full += f"## {s['title']} ({len(items)} rows) — {CANON}/{s['slug']}\n\n"
+        for it in items:
+            bits = [f"{it['brand']} {it['model'] or it['series'] or ''}".strip()]
+            if it["series"] and it["model"] and it["series"] not in it["model"]:
+                bits.append(f"series {it['series']}")
+            for k, lab in (("type", ""), ("hp", "HP "), ("voltage", ""), ("flow_gpm", "gpm "), ("max_head_ft", "max head ft "), ("min_well_in", "min well in "),
+                           ("tank_gal", "tank gal "), ("drawdown_gal", "drawdown gal "), ("max_psi", "max psi "), ("setting", ""), ("warranty", "warranty ")):
+                v = it[k]
+                if _has(v):
+                    if k == "flow_gpm" and _has(it["flow_at_ft"]):
+                        bits.append(f"{v:g} gpm at {it['flow_at_ft']} ft" if isinstance(v, (int, float)) else f"{v} gpm at {it['flow_at_ft']} ft")
+                    else:
+                        bits.append(f"{lab}{v}")
+            if it["well"]:
+                bits.append("well: " + "/".join(it["well"]))
+            if it["price_usd"] is not None:
+                bits.append(f"price ${float(it['price_usd']):,.2f} at {it['price_source']} ({it['price_checked']})")
+            elif it["price_scale"]:
+                bits.append(f"editorial estimate {it['price_scale']}")
+            if it["product_url"]:
+                bits.append(f"official page {it['product_url']}")
+            full += "- " + "; ".join(str(b) for b in bits) + "\n"
+        full += "\n"
+    write("llms-full.txt", full)
+    write(f"{INDEXNOW_KEY}.txt", INDEXNOW_KEY)
+    print("wrote llms.txt, llms-full.txt, IndexNow key")
 
 
 # ---------------------------------------------------------------- section pages
@@ -231,9 +507,10 @@ def write_section(sec, items):
                                "url": f"{CANON}/{sec['slug']}#{it['rid']}"} for i, it in enumerate(items)]}
     body = '<div class="wrap chart-wrap" id="main">\n'
     body += hero("Catalog · " + str(n) + " " + sec["card_noun"] if n else "Catalog", sec["title"], sec["lede"])
+    body += section_answer(sec, items)
     body += safety()
     body += f"""  <div class="toolbar">
-    <div class="fgroups" id="fgroups"></div>
+    <div class="fgroups" id="fgroups">{chips_html(sec, items)}</div>
     <div class="tools">
       <label class="search">Search
         <input type="search" id="search" placeholder="Brand, model, type" autocomplete="off">
@@ -243,7 +520,7 @@ def write_section(sec, items):
       </label>
     </div>
   </div>
-  <p class="count" id="count" aria-live="polite"></p>
+  <p class="count" id="count" aria-live="polite">{"Showing " + str(n) + " of " + str(n) + " " + e(sec["noun"]) if n else "0 " + e(sec["noun"]) + " — no rows yet"}</p>
   <p class="table-caption" id="cap"><strong>Price rule:</strong> {e(PRICE_RULE)} <strong>Editorial estimate</strong> (no live price seen): {e(BANDS)}. Blank cells show “—” (not published / not found). Curve and data-sheet links go to the maker’s official page; curves are not reproduced here.</p>
   <div class="table-box">
     <table class="chart" aria-describedby="cap">
@@ -263,12 +540,14 @@ def write_section(sec, items):
     <section><h2>Independence</h2>
       <p>No ads, no affiliate links, no tracking parameters. Every link goes straight to the manufacturer or retailer page it names.</p></section>
   </div>
-</div>
+""" + related(sec["file"]) + """</div>
 """
     scripts = (f'<script src="app.js?v={ASSET_V}"></script>\n<script src="scroll-hint.js?v={ASSET_V}"></script>\n'
                f'<script>\nconst DATA = {js(payload)};\n'
                f'initCatalog(DATA, {js({"noun": sec["noun"], "cols": cols, "filters": sec["filters"], "curveLabel": sec["curve_label"], "defaultSort": "brand"})});\n</script>')
-    page(sec["file"], f"{sec['title']} · {SITE}", sec["description"], "/" + sec["slug"], sec["file"], body, scripts, ld)
+    title = SEO_TITLE.get(sec["slug"], sec["title"]).format(n=n)
+    ld = [dataset_ld(sec, items, title), crumbs((sec["title"].split(":")[0], "/" + sec["slug"])), ld]
+    page(sec["file"], f"{title} · {SITE}", sec["description"], "/" + sec["slug"], sec["file"], body, scripts, ld)
     print(f"wrote {sec['file']}: {n} rows")
 
 
@@ -286,6 +565,8 @@ def write_home(sections_items):
         f'<span class="ds">{e(s["card"])}</span><span class="go">Open catalog →</span></a>' for s, items in sections_items)
     cards += ('<a class="card" href="sizing.html"><span class="cnt">Explainer</span><span class="nm">Sizing basics</span>'
               '<span class="ds">How many gpm, how much head, which tank, and shallow vs deep wells — with worked examples.</span><span class="go">Read sizing basics →</span></a>')
+    cards += ('<a class="card" href="faq.html"><span class="cnt">Answers</span><span class="nm">Well pump FAQ</span>'
+              '<span class="ds">Submersible vs jet, shallow vs deep, tank size, 30/50 vs 40/60, 2-wire vs 3-wire, 115 V vs 230 V, and cost.</span><span class="go">Read the FAQ →</span></a>')
     cards += ('<a class="card" href="compare.html"><span class="cnt">Tool</span><span class="nm">Compare</span>'
               '<span class="ds">Pick up to four rows from any catalog and see every field and source side by side.</span><span class="go">Open compare →</span></a>')
     total = len(index)
@@ -311,6 +592,10 @@ def write_home(sections_items):
       <p>The U.S. Geological Survey estimates that around 43 million people in the United States get their household water from private domestic wells — wells owned and looked after by the household rather than a utility (<a href="https://www.usgs.gov/mission-areas/water-resources/science/domestic-private-supply-wells" target="_blank" rel="noopener">USGS overview</a>). Those households shop for pumps, tanks, and controls one brand site at a time. This library puts the specs side by side.</p>
     </section>
     <section>
+      <h2>Quick answers</h2>
+      <p><strong>Submersible or jet?</strong> A jet pump sits above ground and lifts by suction, so a shallow-well jet works to about 25 ft; deeper wells usually take a submersible, which sits in the water and pushes it up. <strong>What size?</strong> Work out the gpm you need and the total head at that flow, then match a pump’s official curve. <strong>Which tank?</strong> Pick by drawdown, about one minute of pump run time per cycle. More in the <a href="faq.html">FAQ</a> and <a href="sizing.html">sizing basics</a>.</p>
+    </section>
+    <section>
       <h2>How to use it</h2>
       <p>Search above, or open a catalog. Each catalog is a dense, sortable chart with filter chips for brand, type, well depth, horsepower and phase. Tick <strong>Compare</strong> on up to four rows to line them up. New to sizing? Read <a href="sizing.html">sizing basics</a> first.</p>
     </section>
@@ -326,11 +611,14 @@ def write_home(sections_items):
   </section>
 </div>
 """
-    ld = {"@context": "https://schema.org", "@type": "WebSite", "name": SITE, "url": CANON + "/",
-          "description": "Free, ad-free cross-brand reference for residential and light-ag well pumps and pressure systems."}
+    ld = {"@context": "https://schema.org", "@type": "WebSite", "name": SITE, "alternateName": "WellPumpChart", "url": CANON + "/",
+          "description": "Free, ad-free cross-brand reference for residential and light-ag well pumps and pressure systems.",
+          "inLanguage": "en-US", "creator": CREATOR, "publisher": CREATOR,
+          "potentialAction": {"@type": "SearchAction", "target": {"@type": "EntryPoint", "urlTemplate": CANON + "/?q={search_term_string}"},
+                              "query-input": "required name=search_term_string"}}
     scripts = f'<script>window.SEARCH_INDEX = {js(index)};</script>\n<script src="home-search.js?v={ASSET_V}"></script>'
-    page("index.html", f"{SITE} — well pumps, tanks and controls compared",
-         "Free, ad-free reference comparing residential and light-ag well pumps: submersible, jet, constant-pressure systems, pressure tanks and controls, with sizing basics and a compare tool.",
+    page("index.html", f"Well Pump Comparison Chart: pumps, tanks and controls · {SITE}",
+         f"Free, ad-free charts comparing {total} residential well pumps, pressure tanks and controls across brands: submersible, jet and constant-pressure, with sourced prices, a sizing guide and FAQ.",
          "/", "index.html", body, scripts, ld)
     print("wrote index.html")
 
@@ -353,8 +641,8 @@ def write_compare(sections_items):
   <div class="cmp-wrap" id="cmp-root" aria-live="polite"><div class="cmp-empty">Loading…</div></div>
 </div>
 """
-    page("compare.html", f"Compare · {SITE}", "Compare up to four well pumps, tanks, or controls side by side: every spec, price source and official link in one table.",
-         "/compare", "compare.html", body, f'<script src="data.js?v={ASSET_V}"></script>', page_id="compare")
+    page("compare.html", f"Compare well pumps side by side · {SITE}", "Compare up to four well pumps, tanks, or controls side by side: every spec, price source and official link in one table.",
+         "/compare", "compare.html", body, f'<script src="data.js?v={ASSET_V}"></script>', page_id="compare", jsonld=crumbs(("Compare", "/compare")))
     # data.js must load before compare.js runs init; compare.js initialises on DOMContentLoaded, so order is fine.
     print("wrote compare.html, data.js")
 
@@ -364,6 +652,7 @@ SIZING = """
 <div class="wrap" id="main">
 """ + "{HERO}" + "{SAFETY}" + """
 <article class="prose">
+  <p><strong>In short.</strong> Size a well pump from the flow you need (gpm) and the total dynamic head (feet) at that flow, then pick a pump whose official curve meets both without out-pumping the well. Size the pressure tank by drawdown, about one minute of pump run time per cycle. Shallow water (about 25 ft or less) can use a jet pump; deeper wells usually need a submersible. Quick answers are in the <a href="faq.html">FAQ</a>.</p>
   <nav class="toc" aria-label="On this page"><strong>On this page</strong>
     <ol>
       <li><a href="#gpm">How many gpm do you need?</a></li>
@@ -433,16 +722,20 @@ SIZING = """
   </ul>
   <p>Browse both in the <a href="constant-pressure.html">Constant-pressure systems</a> and <a href="tanks.html">Pressure tanks</a> catalogs.</p>
 </article>
-</div>
+{RELATED}</div>
 """
 
 
 def write_sizing():
     body = SIZING.replace("{HERO}", hero("Explainer", "Sizing basics",
-                                         "Plain-words guidance for picking flow, head, tank size, and pump type, with small worked examples. Rough guidance, not a design.", checked=False)).replace("{SAFETY}", safety())
-    page("sizing.html", f"Sizing basics: gpm, head, tanks, shallow vs deep · {SITE}",
-         "Original-words well pump sizing basics: how many gpm you need, total dynamic head with a worked example, pressure tank drawdown, shallow vs deep wells, 2-wire vs 3-wire, and constant pressure.",
-         "/sizing", "sizing.html", body)
+                                         "Plain-words guidance for picking flow, head, tank size, and pump type, with small worked examples. Rough guidance, not a design.", checked=False)).replace("{SAFETY}", safety()).replace("{RELATED}", related("sizing.html"))
+    ld = [{"@context": "https://schema.org", "@type": "Article", "headline": "How to size a well pump and pressure tank", "url": CANON + "/sizing",
+           "author": CREATOR, "publisher": CREATOR, "dateModified": BUILT_ISO, "inLanguage": "en-US",
+           "about": ["well pump sizing", "total dynamic head", "pressure tank drawdown", "jet pump", "submersible pump"]},
+          crumbs(("Sizing basics", "/sizing"))]
+    page("sizing.html", f"How to size a well pump and pressure tank: gpm, head, drawdown · {SITE}",
+         "How to size a well pump: how many gpm you need, total dynamic head with a worked example, pressure tank drawdown, shallow vs deep wells, 2-wire vs 3-wire, and constant pressure.",
+         "/sizing", "sizing.html", body, jsonld=ld)
     print("wrote sizing.html")
 
 
@@ -451,6 +744,15 @@ def changelog(stats):
     c = stats["counts"]
     lines = ", ".join(f"{s['title'].split(':')[0]} {c[s['slug']]}" for s in SECTIONS)
     return [{
+        "month": "November 2026", "iso": BUILT_ISO, "date": BUILT,
+        "title": "Search and AI-assistant pass",
+        "items": [
+            "Added a Well pump FAQ page (in the menu) with plain-English answers: pump size, submersible vs jet, shallow vs deep jets, jet pump depth, constant pressure, tank size and precharge, 30/50 vs 40/60, 2-wire vs 3-wire, 115 V vs 230 V, and cost ranges taken from this site’s own price data.",
+            "Added a short “In short” answer at the top of each catalog and of sizing basics, plus Related links between catalogs, sizing, FAQ and Compare.",
+            "Clearer page titles, structured data (WebSite with site search, Dataset for each catalog, FAQPage, BreadcrumbList), and an llms.txt / llms-full.txt summary for AI assistants.",
+            "robots.txt now explicitly welcomes search and AI crawlers; the sitemap lists the FAQ and carries update dates; IndexNow is set up so Bing and others hear about changes quickly.",
+            "Filter chips now render with the page, so catalog pages no longer jump while loading. No data changed in this pass.",
+        ]}, {
         "month": "November 2026", "iso": CHECKED_ISO, "date": CHECKED,
         "title": "Launched v1",
         "items": [
@@ -466,12 +768,12 @@ def changelog(stats):
 def write_updates(stats):
     log = changelog(stats)
     entries = "".join(
-        f'<div class="log"><h3>{e(x["month"])} — {e(x["title"])}</h3><p><time datetime="{x["iso"]}">{x["date"]}</time></p><ul>' +
+        f'<div class="log"><h2>{e(x["month"])} — {e(x["title"])}</h2><p><time datetime="{x["iso"]}">{x["date"]}</time></p><ul>' +
         "".join(f"<li>{e(i)}</li>" for i in x["items"]) + "</ul></div>" for x in log)
     body = '<div class="wrap" id="main">\n' + hero("Changelog", "Updates", "A short, plain-English monthly record of what changed on this site.", checked=False)
     body += f'<article class="prose">{entries}</article>\n</div>\n'
-    page("updates.html", f"Updates · {SITE}", "Monthly changelog for the Well Pump Reference Library: what was added, how data was sourced, and the price rule.",
-         "/updates", "updates.html", body)
+    page("updates.html", f"Updates and changelog · {SITE}", "Monthly changelog for the Well Pump Reference Library: what was added, how data was sourced, and the price rule.",
+         "/updates", "updates.html", body, jsonld=crumbs(("Updates", "/updates")))
     md = "# Changelog\n\nAll notable changes to the Well Pump Reference Library, by month.\n\n"
     for x in log:
         md += f"## {x['month']} — {x['title']} ({x['date']})\n\n" + "".join(f"- {i}\n" for i in x["items"]) + "\n"
@@ -481,7 +783,7 @@ def write_updates(stats):
 
 # ---------------------------------------------------------------- 404, meta, readme
 def write_404():
-    pages = [("/", "Home"), *[("/" + s["slug"], s["title"].split(":")[0]) for s in SECTIONS], ("/sizing", "Sizing basics"), ("/compare", "Compare")]
+    pages = [("/", "Home"), *[("/" + s["slug"], s["title"].split(":")[0]) for s in SECTIONS], ("/sizing", "Sizing basics"), ("/faq", "FAQ"), ("/compare", "Compare")]
     grid = "".join(f'<a class="card" href="{CANON}{p}"><span class="nm">{e(n)}</span><span class="go">Open →</span></a>' for p, n in pages)
     html = f"""<!doctype html>
 <html lang="en">
@@ -519,12 +821,15 @@ def write_404():
 
 
 def write_meta():
-    paths = ["/"] + ["/" + s["slug"] for s in SECTIONS] + ["/sizing", "/compare", "/updates"]
+    paths = ["/"] + ["/" + s["slug"] for s in SECTIONS] + ["/sizing", "/faq", "/compare", "/updates"]
     sm = ['<?xml version="1.0" encoding="UTF-8"?>', '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">']
-    sm += [f"  <url><loc>{CANON}{p}</loc><lastmod>{CHECKED_ISO}</lastmod></url>" for p in paths]
+    sm += [f"  <url><loc>{CANON}{p}</loc><lastmod>{BUILT_ISO}</lastmod></url>" for p in paths]
     sm.append("</urlset>")
     write("sitemap.xml", "\n".join(sm) + "\n")
-    write("robots.txt", f"User-agent: *\nAllow: /\n\nSitemap: {CANON}/sitemap.xml\n")
+    bots = ["GPTBot", "OAI-SearchBot", "ChatGPT-User", "ClaudeBot", "Claude-SearchBot", "Claude-User", "PerplexityBot", "Perplexity-User",
+            "Google-Extended", "Googlebot", "Bingbot", "Applebot", "Applebot-Extended", "DuckDuckBot"]
+    write("robots.txt", "# Search engines and AI assistants are welcome to crawl, index and cite this free reference.\n\n" +
+          "".join(f"User-agent: {b}\nAllow: /\n\n" for b in bots) + f"User-agent: *\nAllow: /\n\nSitemap: {CANON}/sitemap.xml\n")
     write("_headers",
           f"# {CANON.removeprefix('https://')} is the canonical address; other hostnames point search engines here.\n"
           f"/*\n  Link: <{CANON}/:splat>; rel=\"canonical\"\n"
@@ -587,6 +892,8 @@ def main():
     write_home(sections_items)
     write_compare(sections_items)
     write_sizing()
+    qa = write_faq(sections_items)
+    write_llms(sections_items, qa)
     write_updates(stats)
     write_404()
     write_meta()

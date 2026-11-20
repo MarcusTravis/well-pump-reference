@@ -77,6 +77,7 @@
 
     // ---- filter chips ----
     var fwrap = document.getElementById("fgroups"), shown = [];
+    fwrap.innerHTML = ""; // the generator pre-renders the same chips (no layout shift); rebuild them live here
     (opts.filters || []).forEach(function (gk) {
       var g = GROUPS[gk];
       if (!g) return;
