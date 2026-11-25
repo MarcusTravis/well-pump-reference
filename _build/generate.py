@@ -14,7 +14,7 @@ CANON = "https://wellpumpchart.pages.dev"
 SITE = "Well Pump Reference Library"
 CHECKED, CHECKED_ISO = "Nov 22, 2026", "2026-11-22"   # last monthly data check
 LAUNCH, LAUNCH_ISO = "Nov 15, 2026", "2026-11-15"
-ASSET_V = "20261120a"
+ASSET_V = "20261124a"
 BUILT, BUILT_ISO = "Nov 22, 2026", "2026-11-22"   # last site (not data) update; sitemap lastmod
 INDEXNOW_KEY = "acfcbfb122853f68d9e9f8acec0d56ab"
 CREATOR = {"@type": "Person", "name": "Marcus Travis"}
@@ -27,8 +27,6 @@ BANDS = "$ under $250 · $$ $250–$600 · $$$ $600–$1,200 · $$$$ $1,200–$2
 SAFETY = ("This is a reference, not installation advice. Confirm your well's depth, water level, recovery rate, casing size, and your electrical "
           "supply (voltage, phase, wire size, breaker) with a licensed well or pump installer and electrician before buying or installing anything. "
           "Specs change — check the manufacturer's current page.")
-FONTS = ("https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800&family=IBM+Plex+Mono:wght@400;500"
-         "&family=IBM+Plex+Sans:wght@400;500;600;700&display=optional")
 FIELDS = ["id", "brand", "series", "model", "type", "well", "hp", "voltage", "phase", "flow_gpm", "flow_at_ft", "max_head_ft",
           "min_well_in", "tank_gal", "drawdown_gal", "drawdown_note", "max_psi", "setting", "warranty", "price_usd", "price_source",
           "price_url", "price_checked", "price_scale", "product_url", "curve_url", "spec_url", "notes"]
@@ -142,9 +140,8 @@ def head(title, description, path, jsonld=None):
 <link rel="icon" href="favicon.ico" sizes="any">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="{FONTS.replace('&', '&amp;')}">
+<link rel="preload" href="fonts/ibm-plex-sans-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="fonts/archivo-latin.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="theme.css?v={ASSET_V}">{ld}
 </head>
 """
@@ -813,7 +810,8 @@ def write_404():
 <link rel="icon" href="{CANON}/favicon.ico" sizes="any">
 <link rel="icon" href="{CANON}/favicon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="{CANON}/apple-touch-icon.png">
-<link rel="stylesheet" href="{FONTS.replace('&', '&amp;')}">
+<link rel="preload" href="{CANON}/fonts/ibm-plex-sans-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="{CANON}/fonts/archivo-latin.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="{CANON}/theme.css">
 <script>
 (function(){{var p=location.pathname;if(p.length>1&&p.charAt(p.length-1)==="/")location.replace(p.slice(0,-1)+location.search+location.hash);}})();
